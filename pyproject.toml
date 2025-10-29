@@ -1,0 +1,30 @@
+[project]
+name = "pattern_aware_filtering"
+description = "pattern_aware_filtering"
+version = "0.0.1"
+requires-python = ">=3.11,<3.12"
+authors = [{name = "Chanwoo Park", email = "99chanwoo@snu.ac.kr"}, {name = "Jaejin Lee", email = "jaejin@snu.ac.kr"}]
+readme = "README.md"
+dependencies = [
+    "numpy",
+    "fasttext",
+    "warcio",
+    "tqdm",
+    "requests"
+]
+
+[tool.setuptools.packages.find]
+include = ["pattern_aware_filtering*"]
+
+
+[project.urls]
+Homepage = "https://champ.snu.ac.kr/"
+Repository = "https://github.com/mcrl/pattern-aware-filtering"
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "cuda: tests that require cuda devices (deselect with '-m \"not cuda\"')",
+    "skip: tests that should be skipped (deselect with '-m \"not skip\"')",
+]
