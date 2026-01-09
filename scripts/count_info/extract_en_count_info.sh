@@ -9,7 +9,7 @@ function process_snapshot() {
         --train-start 0 \
         --train-end 500 \
         --valid-start 0 \
-        --valid-end 5   
+        --valid-end 5
 }
 
 # For utilizing multiple nodes for processing, you may distribute the workload per snapshot across your cluster.
