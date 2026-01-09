@@ -4,6 +4,14 @@ A collection of tools for extracting Korean and English text for LLM training fr
 
 Codes for **Beyond Line-Level Filtering for the Pretraining Corpora of LLMs**
 
+## Features
+
+- **Pattern-Aware Line-level Deduplication (PLD)**: Remove boilerplate lines based on corpus-wide frequency
+- **Pattern-Aware Text Filtering (PTF)**: Filter documents based on pattern-matched line ratios
+- **RefinedWeb Heuristics**: DCLM-compatible heuristic quality filters
+- **BFF Deduplication**: Bloom Filter Fuzzy deduplication at paragraph and document level
+- **FastText Quality Filtering**: DCLM fastText classifier for quality-based filtering
+
 ## System Requirements
 
 Our data pipeline were run with 64 CPU vCores and 512GB RAM space.
@@ -24,8 +32,23 @@ gunzip
 ```bash
 pip install -e .
 
-# downloading fasttext language identification model
+# Required dependencies
+pip install fasttext uniseg tqdm
+
+# Download fasttext language identification model
 wget https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz -O pattern_aware_filtering/utils/lid.176.ftz
+
+# For FastText quality filtering, download DCLM classifier
+huggingface-cli download mlfoundations/fasttext-oh-eli5 --local-dir ./models
+```
+
+### Building BFF (for deduplication)
+
+```bash
+# Clone DCLM repository
+git clone https://github.com/mlfoundations/dclm
+cd dclm/dedup/bff
+cargo build --release
 ```
 
 ## Overview
@@ -130,3 +153,65 @@ Following scripts apply PLD / PTF at the intermediate file. See the script for d
 bash scripts/extract-ko/run_pld_ablation.sh # for setting r/y/g threshold for PLD
 bash scripts/extract-ko/run_ptf_ablation.sh # for acquiring 'k' for PTF. We obtain our final version of data with this script.
 ```
+
+## Post-Extraction Pipeline
+
+After PLD/PTF extraction, apply additional filtering stages for DCLM-compatible preprocessing:
+
+### Full Pipeline
+
+```bash
+# Set environment
+export BFF_PATH=/path/to/dclm/dedup/bff
+
+# Run full pipeline (RefinedWeb -> BFF -> FastText)
+bash scripts/pipeline/run_full_pipeline.sh \
+    /path/to/pld_ptf_extracted \
+    /path/to/output \
+    /path/to/dclm_fasttext.bin
+```
+
+### Individual Stages
+
+#### RefinedWeb Heuristic Filtering
+
+Applies DCLM's RefinedWeb heuristic filters (page length, word length, symbol ratio, repetition filters, etc.):
+
+```bash
+# Using bash script
+bash scripts/pipeline/run_refinedweb.sh INPUT_DIR OUTPUT_DIR
+
+# Or using Python module directly
+python -m pattern_aware_filtering.filtering.refinedweb \
+    --input_dir /path/to/input \
+    --output_dir /path/to/output \
+    --workers 64
+```
+
+#### BFF Deduplication
+
+Bloom Filter Fuzzy deduplication (13-gram, 80% threshold):
+
+```bash
+export BFF_PATH=/path/to/dclm/dedup/bff
+bash scripts/pipeline/run_bff_dedup.sh INPUT_DIR OUTPUT_DIR
+```
+
+#### FastText Quality Filtering
+
+DCLM fastText classifier (threshold: 0.018112, ~27% keep rate):
+
+```bash
+bash scripts/pipeline/run_fasttext_filter.sh INPUT_DIR OUTPUT_DIR MODEL_PATH
+
+# Or using Python module directly
+python -m pattern_aware_filtering.filtering.quality_classifier \
+    --input_dir /path/to/input \
+    --output_dir /path/to/output \
+    --model_path /path/to/dclm_fasttext.bin \
+    --threshold 0.018112
+```
+
+### Pipeline Documentation
+
+For detailed pipeline documentation, see [docs/PIPELINE.md](docs/PIPELINE.md).

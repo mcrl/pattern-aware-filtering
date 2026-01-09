@@ -4,11 +4,11 @@ import os
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Define paths for CCNet data
-CCWET_PATH = "data/ccnet/wet"
+CCWET_PATH = "data/ccnet/wet" # <<< /shared/erc/dataset/CC_WET
 
 # baseline directories for English and Korean data
-EN_CCWET_PATH = "data/ccwet/en"
-KO_CCWET_PATH = "data/ccwet/ko"
+EN_CCWET_PATH = "data/ccwet/en" # /shared/erc/lab08/jia/workspace 
+KO_CCWET_PATH = "data/ccwet/ko" # /shared/erc/lab08/jia/workspace
 
 # Ablation data directory path
 EN_EXTRACTED_PATH = "data/extracted/en"
